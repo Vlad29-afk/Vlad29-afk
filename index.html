@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FORMA — Architecture Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Suisse+Int%27l+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --off-white: #f5f3ef;
+      --black: #0e0e0e;
+      --warm-grey: #9a9590;
+      --accent: #c8b89a;
+      --line: rgba(14,14,14,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--off-white);
+      color: var(--black);
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: var(--black);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s;
+    }
+    .cursor.expand {
+      width: 36px; height: 36px;
+      background: transparent;
+      border: 1px solid var(--black);
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 2rem 3rem;
+      display: flex; justify-content: space-between; align-items: center;
+      mix-blend-mode: multiply;
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-weight: 400;
+    }
+    .nav-links {
+      display: flex; gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--black);
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    .nav-links a:hover { opacity: 1; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr auto;
+      padding: 0;
+      opacity: 0;
+      animation: fadeUp 1.2s ease forwards 0.3s;
+    }
+
+    .hero-left {
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 10rem 3rem 5rem;
+      border-right: 1px solid var(--line);
+    }
+
+    .hero-eyebrow {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--warm-grey);
+      margin-bottom: 2rem;
+    }
+
+    .hero-title {
+      font-size: clamp(4rem, 7vw, 8rem);
+      font-weight: 300;
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--warm-grey);
+    }
+
+    .hero-right {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-image-placeholder {
+      width: 100%; height: 100%;
+      background: linear-gradient(160deg, #d9d4cc 0%, #b8b0a4 40%, #9e9488 100%);
+      position: relative;
+    }
+
+    /* Architectural line drawing SVG feel */
+    .hero-image-placeholder::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Crect x='60' y='80' width='280' height='420' fill='none' stroke='%23f5f3ef' stroke-width='0.8' opacity='0.3'/%3E%3Crect x='100' y='120' width='200' height='340' fill='none' stroke='%23f5f3ef' stroke-width='0.5' opacity='0.2'/%3E%3Cline x1='60' y1='300' x2='340' y2='300' stroke='%23f5f3ef' stroke-width='0.5' opacity='0.2'/%3E%3Cline x1='200' y1='80' x2='200' y2='500' stroke='%23f5f3ef' stroke-width='0.5' opacity='0.2'/%3E%3Crect x='130' y='200' width='60' height='80' fill='%23f5f3ef' opacity='0.08'/%3E%3Crect x='210' y='200' width='60' height='80' fill='%23f5f3ef' opacity='0.08'/%3E%3Crect x='155' y='380' width='90' height='140' fill='%23f5f3ef' opacity='0.1'/%3E%3C/svg%3E") center/cover no-repeat;
+    }
+
+    .hero-image-placeholder::after {
+      content: 'PROJECT 001 — OSLO RESIDENCE';
+      position: absolute; bottom: 2rem; left: 2rem;
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: rgba(245,243,239,0.6);
+      text-transform: uppercase;
+    }
+
+    .hero-bottom {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .hero-stat {
+      padding: 2rem 3rem;
+      border-right: 1px solid var(--line);
+    }
+    .hero-stat:last-child { border-right: none; }
+
+    .stat-number {
+      font-size: 2.4rem;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--warm-grey);
+      margin-top: 0.4rem;
+    }
+
+    /* ABOUT */
+    .about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--line);
+      opacity: 0;
+      animation: fadeUp 1s ease forwards 0.6s;
+    }
+
+    .about-left {
+      padding: 6rem 3rem;
+      border-right: 1px solid var(--line);
+    }
+
+    .section-label {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--warm-grey);
+      margin-bottom: 3rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .section-label::before {
+      content: '';
+      width: 2rem; height: 1px;
+      background: var(--warm-grey);
+    }
+
+    .about-heading {
+      font-size: clamp(2.2rem, 3.5vw, 3.5rem);
+      font-weight: 300;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      max-width: 18ch;
+    }
+    .about-heading em { font-style: italic; color: var(--warm-grey); }
+
+    .about-right {
+      padding: 6rem 3rem;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+
+    .about-text {
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: #4a4743;
+      max-width: 42ch;
+    }
+
+    .about-cta {
+      display: inline-flex; align-items: center; gap: 1rem;
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--black);
+      border-bottom: 1px solid var(--black);
+      padding-bottom: 0.4rem;
+      transition: gap 0.3s;
+      width: fit-content;
+      margin-top: 3rem;
+    }
+    .about-cta:hover { gap: 1.8rem; }
+    .about-cta::after { content: '→'; }
+
+    /* PROJECTS */
+    .projects {
+      border-top: 1px solid var(--line);
+    }
+
+    .projects-header {
+      padding: 4rem 3rem 2rem;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .projects-heading {
+      font-size: clamp(2rem, 3vw, 3rem);
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .project-card {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+      cursor: none;
+    }
+    .project-card:nth-child(3n) { border-right: none; }
+
+    .project-image {
+      height: 280px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-image-bg {
+      width: 100%; height: 100%;
+      transition: transform 0.7s ease;
+    }
+    .project-card:hover .project-image-bg { transform: scale(1.04); }
+
+    .p1 { background: linear-gradient(135deg, #c4bcb0 0%, #a09890 100%); }
+    .p2 { background: linear-gradient(135deg, #b8c4bf 0%, #8a9e97 100%); }
+    .p3 { background: linear-gradient(135deg, #c9c0b8 0%, #b0a498 100%); }
+    .p4 { background: linear-gradient(135deg, #bec8c4 0%, #96a8a2 100%); }
+    .p5 { background: linear-gradient(135deg, #ccc4b8 0%, #b4a89a 100%); }
+    .p6 { background: linear-gradient(135deg, #c0bab4 0%, #a89e96 100%); }
+
+    .project-info {
+      padding: 1.5rem 2rem;
+    }
+
+    .project-number {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      color: var(--warm-grey);
+      margin-bottom: 0.5rem;
+    }
+
+    .project-name {
+      font-size: 1.4rem;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+
+    .project-type {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--warm-grey);
+      margin-top: 0.4rem;
+    }
+
+    /* SERVICES */
+    .services {
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+    }
+
+    .services-left {
+      padding: 6rem 3rem;
+      border-right: 1px solid var(--line);
+    }
+
+    .services-right {
+      padding: 6rem 3rem;
+    }
+
+    .service-item {
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: start;
+      gap: 2rem;
+    }
+    .service-item:first-child { border-top: 1px solid var(--line); }
+
+    .service-num {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--warm-grey);
+      letter-spacing: 0.1em;
+      padding-top: 0.3rem;
+    }
+
+    .service-name {
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+
+    .service-desc {
+      font-size: 0.95rem;
+      color: #6a6560;
+      line-height: 1.7;
+      max-width: 32ch;
+      margin-top: 0.5rem;
+    }
+
+    .service-arrow {
+      font-size: 1rem;
+      color: var(--warm-grey);
+      padding-top: 0.3rem;
+    }
+
+    /* CONTACT */
+    .contact {
+      border-top: 1px solid var(--line);
+      background: var(--black);
+      color: var(--off-white);
+      padding: 8rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+
+    .contact-heading {
+      font-size: clamp(3rem, 5vw, 5.5rem);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .contact-heading em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .contact-right {
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+
+    .contact-info { }
+    .contact-info p {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(245,243,239,0.5);
+      margin-bottom: 0.5rem;
+    }
+    .contact-info a {
+      font-size: 1.3rem;
+      color: var(--off-white);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 2rem;
+      transition: color 0.3s;
+    }
+    .contact-info a:hover { color: var(--accent); }
+
+    .contact-btn {
+      display: inline-flex; align-items: center; gap: 1rem;
+      background: var(--off-white);
+      color: var(--black);
+      padding: 1.2rem 2.5rem;
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.3s, color 0.3s, gap 0.3s;
+      width: fit-content;
+    }
+    .contact-btn:hover {
+      background: var(--accent);
+      gap: 1.8rem;
+    }
+    .contact-btn::after { content: '→'; }
+
+    footer {
+      background: var(--black);
+      border-top: 1px solid rgba(245,243,239,0.1);
+      padding: 2rem 3rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    footer span {
+      font-family: 'Suisse Int\'l Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(245,243,239,0.3);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 1.5rem; }
+      .hero, .about, .services { grid-template-columns: 1fr; }
+      .hero-right { min-height: 50vw; }
+      .hero-bottom { grid-template-columns: 1fr 1fr; }
+      .hero-stat:nth-child(2) { border-right: none; }
+      .hero-stat:last-child { display: none; }
+      .projects-grid { grid-template-columns: 1fr 1fr; }
+      .projects-grid .project-card:nth-child(2n) { border-right: none; }
+      .projects-grid .project-card:nth-child(3n) { border-right: 1px solid var(--line); }
+      .contact { grid-template-columns: 1fr; }
+      .about-left, .services-left { border-right: none; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">Forma</div>
+    <ul class="nav-links">
+      <li><a href="#projects">Work</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#about">Studio</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Architecture Studio — Est. 2008</p>
+      <h1 class="hero-title">
+        Space<br>
+        <em>as</em><br>
+        Language
+      </h1>
+    </div>
+    <div class="hero-right">
+      <div class="hero-image-placeholder"></div>
+    </div>
+    <div class="hero-bottom">
+      <div class="hero-stat">
+        <div class="stat-number">48</div>
+        <div class="stat-label">Projects Completed</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-number">12</div>
+        <div class="stat-label">Countries</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-number">7×</div>
+        <div class="stat-label">Award Winner</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about reveal" id="about">
+    <div class="about-left">
+      <p class="section-label">About the Studio</p>
+      <h2 class="about-heading">
+        Architecture that<br>
+        <em>listens before</em><br>
+        it speaks.
+      </h2>
+    </div>
+    <div class="about-right">
+      <div>
+        <p class="about-text">
+          Forma is a design-led architecture studio working at the intersection of material culture, landscape, and human experience. We believe that exceptional spaces emerge from careful listening — to clients, to context, to the land itself.
+        </p>
+        <p class="about-text" style="margin-top:1.5rem;">
+          From private residences to civic institutions, each project is approached as a singular conversation between structure and site.
+        </p>
+        <a href="#projects" class="about-cta">View Selected Work</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="projects reveal" id="projects">
+    <div class="projects-header">
+      <h2 class="projects-heading">Selected Projects</h2>
+      <a href="#" class="about-cta" style="margin-top:0;">All Projects</a>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-image"><div class="project-image-bg p1"></div></div>
+        <div class="project-info">
+          <p class="project-number">001 — 2023</p>
+          <p class="project-name">Oslo Residence</p>
+          <p class="project-type">Private Dwelling</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-image"><div class="project-image-bg p2"></div></div>
+        <div class="project-info">
+          <p class="project-number">002 — 2023</p>
+          <p class="project-name">Kyoto Cultural Centre</p>
+          <p class="project-type">Civic / Cultural</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-image"><div class="project-image-bg p3"></div></div>
+        <div class="project-info">
+          <p class="project-number">003 — 2022</p>
+          <p class="project-name">Lisbon Tower</p>
+          <p class="project-type">Mixed-Use</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-image"><div class="project-image-bg p4"></div></div>
+        <div class="project-info">
+          <p class="project-number">004 — 2022</p>
+          <p class="project-name">Patagonia Lodge</p>
+          <p class="project-type">Hospitality</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-image"><div class="project-image-bg p5"></div></div>
+        <div class="project-info">
+          <p class="project-number">005 — 2021</p>
+          <p class="project-name">Helsinki Library</p>
+          <p class="project-type">Public Institution</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-image"><div class="project-image-bg p6"></div></div>
+        <div class="project-info">
+          <p class="project-number">006 — 2021</p>
+          <p class="project-name">Marrakech Villa</p>
+          <p class="project-type">Private Dwelling</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services reveal" id="services">
+    <div class="services-left">
+      <p class="section-label">What We Do</p>
+      <h2 class="about-heading" style="font-size:clamp(1.8rem,2.8vw,2.8rem);">
+        Full-cycle<br>
+        <em>design</em><br>
+        practice.
+      </h2>
+    </div>
+    <div class="services-right">
+      <div class="service-item">
+        <span class="service-num">01</span>
+        <div>
+          <p class="service-name">Architecture</p>
+          <p class="service-desc">From concept through completion — residential, commercial, civic, and cultural projects of all scales.</p>
+        </div>
+        <span class="service-arrow">↗</span>
+      </div>
+      <div class="service-item">
+        <span class="service-num">02</span>
+        <div>
+          <p class="service-name">Interior Design</p>
+          <p class="service-desc">Spatial planning and material curation that extends architectural intent into every surface and room.</p>
+        </div>
+        <span class="service-arrow">↗</span>
+      </div>
+      <div class="service-item">
+        <span class="service-num">03</span>
+        <div>
+          <p class="service-name">Urban Planning</p>
+          <p class="service-desc">Master planning and neighbourhood design that harmonises density, movement, and public life.</p>
+        </div>
+        <span class="service-arrow">↗</span>
+      </div>
+      <div class="service-item">
+        <span class="service-num">04</span>
+        <div>
+          <p class="service-name">Consultancy</p>
+          <p class="service-desc">Strategic design consultation for developers, municipalities, and cultural institutions.</p>
+        </div>
+        <span class="service-arrow">↗</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact reveal" id="contact">
+    <div>
+      <h2 class="contact-heading">
+        Let's build<br>
+        <em>something</em><br>
+        lasting.
+      </h2>
+    </div>
+    <div class="contact-right">
+      <div class="contact-info">
+        <p>Email</p>
+        <a href="mailto:studio@forma.com">studio@forma.com</a>
+        <p>Phone</p>
+        <a href="tel:+1234567890">+1 234 567 890</a>
+        <p>Studio</p>
+        <a href="#">12 Harbour Lane, Oslo, Norway</a>
+      </div>
+      <a href="mailto:studio@forma.com" class="contact-btn">Start a Conversation</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Forma Architecture Studio</span>
+    <span>Oslo · Lisbon · Tokyo</span>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, .project-card, button').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+    });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(r => observer.observe(r));
+  </script>
+</body>
+</html>
